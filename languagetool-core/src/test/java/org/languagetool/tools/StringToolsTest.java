@@ -23,13 +23,17 @@ import org.languagetool.FakeLanguage;
 import org.languagetool.Language;
 import org.languagetool.TestTools;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Daniel Naber
@@ -293,4 +297,264 @@ public class StringToolsTest {
     assertFalse(StringTools.allStartWithLowercase("Baggins"));
   }
 
+  //--------------------------------------------SWE 261P------------------------------------
+
+  //Test Case: readStream in StringTools.java(Line 147)
+  @Test
+  public void testReadStreamWithNullEncoding() throws IOException {
+    InputStream mockStream = new ByteArrayInputStream("Test Stream".getBytes());
+    String result = StringTools.readStream(mockStream, null);
+    assertEquals("Test Stream\n", result);
+    //Test with null encoding
+  }
+
+  @Test
+  public void testReadEmptyStream() throws IOException {
+    InputStream mockStream = new ByteArrayInputStream("".getBytes());
+    String result = StringTools.readStream(mockStream, null);
+    assertEquals("", result);
+    //Test with empty input
+  }
+
+  @Test
+  public void testReadStreamWithMultipleLines() throws IOException {
+    InputStream mockStream = new ByteArrayInputStream("Line 1\nLine 2\nLine 3".getBytes());
+    String result = StringTools.readStream(mockStream, "UTF-8");
+    assertEquals("Line 1\nLine 2\nLine 3\n", result);
+    //Test with regular input
+  }
+
+  @Test
+  public void testReadStreamWithIOException() throws IOException {
+    InputStream mockStream = mock(InputStream.class);
+    when(mockStream.read(any(byte[].class))).thenThrow(new IOException("Mocked IOException"))
+      .thenReturn(-1);
+    assertThrows(IOException.class, () -> StringTools.readStream(mockStream, null));
+    //Test throwing exception
+  }
+
+  //Test Case: readtoString in StringTools.java(Line 398)
+  @Test
+  public void testReaderToStringWithNormalInput() throws IOException {
+    String inputString = "This is a test.";
+    Reader reader = new StringReader(inputString);
+    String result = StringTools.readerToString(reader);
+    assertEquals(inputString, result);
+    //Test normal input
+  }
+
+  @Test
+  public void testReaderToStringWithEmptyInput() throws IOException {
+    String inputString = "";
+    Reader reader = new StringReader(inputString);
+    String result = StringTools.readerToString(reader);
+    assertEquals(inputString, result);
+    //Test empyt input
+  }
+
+  @Test
+  public void testReaderToStringWithSpecialCharacters() throws IOException {
+    String inputString = "特殊%^73*test";
+    Reader reader = new StringReader(inputString);
+    String result = StringTools.readerToString(reader);
+    assertEquals(inputString, result);
+    //Test input with special characters
+  }
+
+  @Test
+  public void testReaderToStringWithIOException() throws IOException {
+    Reader mockreader = mock(Reader.class);
+    when(mockreader.read(any(char[].class), anyInt(), anyInt())).thenThrow(new IOException("Mocked IOException")).thenReturn(-1);
+    assertThrows(IOException.class, () -> StringTools.readerToString(mockreader));
+    //Test throwing exception
+  }
+
+//Test Case: streamtoString in StringTools.java(Line 412)
+
+  @Test
+  public void testStreamToStringWithNormalInput() throws IOException {
+    String inputString = "Hello, World!";
+    InputStream inputStream = new ByteArrayInputStream(inputString.getBytes(StandardCharsets.UTF_8));
+    String result = StringTools.streamToString(inputStream, StandardCharsets.UTF_8.name());
+    assertEquals(inputString, result);
+    //Test normal input
+  }
+
+  @Test
+  public void testStreamToStringWithEmptyInput() throws IOException {
+    InputStream emptyInputStream = new ByteArrayInputStream(new byte[0]);
+    String result = StringTools.streamToString(emptyInputStream, StandardCharsets.UTF_8.name());
+    assertEquals("", result);
+    //Test empty input
+  }
+  @Test
+  public void testStreamToStringWithIOException() throws IOException {
+    InputStream mockStream = mock(InputStream.class);
+    when(mockStream.read(any(byte[].class))).thenThrow(new IOException("Mocked IOException"))
+      .thenReturn(-1);
+    assertThrows(IOException.class, () -> StringTools.streamToString(mockStream, StandardCharsets.UTF_8.name()));
+    //Test throwing exception
+  }
+
+  //Test Case: getDifference in StringTools.java(Line 759)
+  @Test
+  public void testGetDifferenceWithEqualStrings() {
+    String s = "Hello, World!";
+    List<String> result = StringTools.getDifference(s, s);
+    assertEquals(Arrays.asList(s, "", "", ""), result);
+    //Test equal strings
+  }
+  @Test
+  public void testGetDifferenceCommonStringAtStart() {
+    String s1 = "Hello, World!";
+    String s2 = "Hello, Universe!";
+    List<String> result = StringTools.getDifference(s1, s2);
+    System.out.println(result.get(0));
+    assertEquals("Hello, ", result.get(0));
+    //Get common string at start
+  }
+  @Test
+  public void testGetDifferenceDiffInString1() {
+    String s1 = "Hello, World!";
+    String s2 = "Hello, Universe!";
+    List<String> result = StringTools.getDifference(s1, s2);
+    System.out.println(result.get(1));
+    assertEquals("World", result.get(1));
+    // Get diff in string1
+  }
+  @Test
+  public void testGetDifferenceDiffInString2() {
+    String s1 = "Hello, World!";
+    String s2 = "Hello, Universe!";
+    List<String> result = StringTools.getDifference(s1, s2);
+    System.out.println(result.get(2));
+    assertEquals("Universe", result.get(2));
+    // Get diff in string2
+  }
+
+  @Test
+  public void testGetDifferenceCommonStringAtEnd() {
+    String s1 = "Hello, World!";
+    String s2 = "Hello, Universe!";
+    List<String> result = StringTools.getDifference(s1, s2);
+    System.out.println(result.get(3));
+    assertEquals("!", result.get(3));
+    //Get common string at end
+  }
+
+  //Test Case: isEmoji in StringTools.java(Line 912)
+  @Test
+  public void testSingleRegularCharacter() {
+    assertFalse(StringTools.isEmoji("a"));
+    // Test with a regular character
+  }
+
+  @Test
+  public void testSingleCodeEmoji() {
+    assertFalse(StringTools.isEmoji("\uD83D"));
+    // Test with a single code emoji
+  }
+
+  @Test
+  public void testMultiCharacterString() {
+    assertFalse(StringTools.isEmoji("emoji"));
+    // Test with a string
+  }
+
+  @Test
+  public void testMultiCodePointEmoji() {
+    assertTrue(StringTools.isEmoji("😂"));
+    // Test with a multi-code point emoji
+  }
+
+  @Test
+  public void testStringWithEmoji() {
+    assertTrue(StringTools.isEmoji("test😂"));
+    // Test with a string with an emoji
+  }
+
+
+  //Test Case: splitCamelCase in StringTools.java(Line 938)
+
+  @Test
+  public void testAllUppercase() {
+    assertArrayEquals(new String[]{"CAMELTEST"}, StringTools.splitCamelCase("CAMELTEST"));
+    // Test with a string that is entirely in uppercase
+  }
+
+  @Test
+  public void testStandardCamelCase() {
+    assertArrayEquals(new String[]{"Java", "Test"}, StringTools.splitCamelCase("JavaTest"));
+    // Test with a standard camel case string
+  }
+
+  @Test
+  public void testEmptyString() {
+    assertArrayEquals(new String[]{""},StringTools.splitCamelCase(""));
+    // Test with an empty string
+  }
+
+  @Test
+  public void testNullInput() {
+    assertNull(StringTools.splitCamelCase(null));
+    // Test with a null input
+  }
+
+  @Test
+  public void testNoUppercase() {
+    assertArrayEquals(new String[]{"testspringtool"}, StringTools.splitCamelCase("testspringtool"));
+    // Test with a string that contains no uppercase letters
+  }
+
+  // Test Case: splitDigitsAtEnd in StringTools.java(Line 962)
+  @Test
+  public void testStringEndInDigit() {
+    assertArrayEquals(new String[]{"abc", "123"}, StringTools.splitDigitsAtEnd("abc123"));
+    // Test with string end in digits.
+  }
+  @Test
+  public void testOnlyDigit() {
+    assertArrayEquals(new String[]{"12345"}, StringTools.splitDigitsAtEnd("12345"));
+    // Test with string only have digits.
+  }
+  @Test
+  public void testNoDigit() {
+    assertArrayEquals(new String[]{"test"}, StringTools.splitDigitsAtEnd("test"));
+    // Test with string do not have digits.
+  }
+  @Test
+  public void testNewEmptyString() {
+    assertArrayEquals(new String[]{""}, StringTools.splitDigitsAtEnd(""));
+    // Test with empty string.
+  }
+  @Test
+  public void testDigitNotOnlyAtEnd() {
+    assertArrayEquals(new String[]{"1abc", "23"}, StringTools.splitDigitsAtEnd("1abc23"));
+    // Test with string not only have digits at the end.
+  }
+
+  // Test Case: isAnagram in StringTools.java(Line 975)
+  @Test
+  public void testIsAnagram() {
+    assertTrue(StringTools.isAnagram("anagram", "nagamra"));
+    // Test with same string length and is anagram.
+  }
+  @Test
+  public void testNotAnagram() {
+    assertFalse(StringTools.isAnagram("rain", "snow"));
+    // Test with same string length but not anagram.
+  }
+  @Test
+  public void testCaseSensitivity() {
+    assertFalse(StringTools.isAnagram("hello", "HELLO"));
+    // Test with same string but is different cases.
+  }
+  @Test
+  public void testDifferentLengths() {
+    assertFalse((StringTools.isAnagram("testing", "test")));
+    // Test with different string length.
+  }
 }
+
+
+
