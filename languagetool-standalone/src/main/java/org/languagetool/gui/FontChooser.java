@@ -66,9 +66,9 @@ class FontChooser extends JDialog implements ActionListener,
   private static final Integer[] fontSizesArray = {
     6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26, 28, 32
   };
-  private static final String ACTION_COMMAND_OK = "OK";
-  private static final String ACTION_COMMAND_CANCEL = "CANCEL";  
-  private static final String ACTION_COMMAND_RESET = "RESET";  
+  public static final String ACTION_COMMAND_OK = "OK";
+  public static final String ACTION_COMMAND_CANCEL = "CANCEL";
+  public static final String ACTION_COMMAND_RESET = "RESET";
   private String[] fontStylesArray;
 
   private final ResourceBundle messages;
