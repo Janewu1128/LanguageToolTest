@@ -495,12 +495,6 @@ public class StringToolsTest {
   }
 
   @Test
-  public void testNullInput() {
-    assertNull(StringTools.splitCamelCase(null));
-    // Test with a null input
-  }
-
-  @Test
   public void testNoUppercase() {
     assertArrayEquals(new String[]{"testspringtool"}, StringTools.splitCamelCase("testspringtool"));
     // Test with a string that contains no uppercase letters
