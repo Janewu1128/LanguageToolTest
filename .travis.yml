@@ -4,3 +4,6 @@ jdk:
   - oraclejdk15
   - oraclejdk11
   - openjdk11
+
+script:
+  - mvn clean install -pl languagetool-core -am
