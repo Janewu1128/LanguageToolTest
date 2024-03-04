@@ -20,12 +20,51 @@ package org.languagetool.server;
 
 import org.junit.Test;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.*;
 @SuppressWarnings("ResultOfObjectAllocationIgnored")
 public class HTTPSServerConfigTest {
+  @Test
+  public void testGetKeystore() {
+    //create a mock object for HTTPSServerConfig
+    HTTPSServerConfig configMock = mock(HTTPSServerConfig.class);
+
+    // mock the action
+    File expectedKeystoreFile = new File("C:\\Users\\23886\\Desktop\\languagetool.txt");
+    when(configMock.getKeystore()).thenReturn(expectedKeystoreFile);
+
+    // test the method
+    File keystore = configMock.getKeystore();
+
+    assertEquals("Expected keystore file", expectedKeystoreFile, keystore);
+
+  }
+  @Test
+  public void testGetKeyStorePassword() {
+    //create a mock object for HTTPSServerConfig
+    HTTPSServerConfig configMock = mock(HTTPSServerConfig.class);
+
+    // mock the action
+    when(configMock.getKeyStorePassword()).thenReturn("");
+
+    // test the method
+    String password = configMock.getKeyStorePassword();
+
+    assertEquals("Expected keystore password", "", password);
+  }
+
+
 
   @Test
   public void testArgumentParsing() {
