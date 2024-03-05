@@ -32,9 +32,17 @@ import java.util.List;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 /**
  * @author Daniel Naber
  */
@@ -547,6 +555,30 @@ public class StringToolsTest {
   public void testDifferentLengths() {
     assertFalse((StringTools.isAnagram("testing", "test")));
     // Test with different string length.
+  }
+
+//  ----------------------------Mocking test-------------------------------------------
+
+
+  @Test
+  public void testStreamToString() throws IOException {
+    // Mock InputStream
+    String inputString = "Mocked Input String";
+    InputStream mockInputStream = new ByteArrayInputStream(inputString.getBytes());
+
+    // Mock InputStreamReader
+    InputStreamReader mockInputStreamReader = mock(InputStreamReader.class);
+
+    // Create an instance of your class (StringTools in this case)
+    StringTools stringTools = new StringTools();
+
+    // Mock the behavior of the InputStreamReader
+    when(mockInputStreamReader.read()).thenReturn(-1); // Assuming the end of stream
+
+    // Call the method to be tested
+    String result = stringTools.streamToString(mockInputStream, "UTF-8");
+    // Verify interactions and assertions
+    assertEquals("Mocked Input String", result);  // Check the expected result
   }
 }
 

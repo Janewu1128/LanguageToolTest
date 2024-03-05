@@ -123,7 +123,7 @@ public final class StringTools {
 
   private static final Set<String> ALL_TITLECASE_EXCEPTIONS = collectAllTitleCaseExceptions();
 
-  private StringTools() {
+  StringTools() {
     // only static stuff
   }
 
