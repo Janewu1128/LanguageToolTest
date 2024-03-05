@@ -1,6 +1,6 @@
-/* LanguageTool, a natural language style checker 
+/* LanguageTool, a natural language style checker
  * Copyright (C) 2007 Daniel Naber (http://www.danielnaber.de)
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -51,88 +51,145 @@ public final class LanguageBuilder {
    * e.g. <tt>rules-de-German.xml</tt> and builds
    * a Language object for that language.
    */
-  private static Language makeLanguage(File file, boolean isAdditional) throws IllegalAccessException, InstantiationException {
-    Objects.requireNonNull(file, "file cannot be null");
+//  private static Language makeLanguage(File file, boolean isAdditional) throws IllegalAccessException, InstantiationException {
+//    Objects.requireNonNull(file, "file cannot be null");
+//    if (!file.getName().endsWith(".xml")) {
+//      throw new RuleFilenameException(file);
+//    }
+//    String[] parts = file.getName().split("-");
+//    boolean startsWithRules = parts[0].equals("rules");
+//    boolean secondPartHasCorrectLength = parts.length == 3 &&
+//            (parts[1].length() == "en".length() || parts[1].length() == "ast".length() || parts[1].length() == "en_US".length());
+//    if (!startsWithRules || !secondPartHasCorrectLength) {
+//      throw new RuleFilenameException(file);
+//    }
+//    //TODO: when the XML file is mergeable with
+//    // other rules (check this in the XML Rule Loader by using rules[@integrate='add']?),
+//    // subclass the existing language, and adjust the settings if any are set in the rule file default configuration set
+//
+//    Language newLanguage;
+//    if (Languages.isLanguageSupported(parts[1])) {
+//      Language baseLanguage = Languages.getLanguageForShortCode(parts[1]).getClass().newInstance();
+//      newLanguage = new ExtendedLanguage(baseLanguage, parts[2].replace(".xml", ""), file);
+//    } else {
+//      newLanguage = new Language() {
+//        @Override
+//        public Locale getLocale() {
+//          return new Locale(getShortCode());
+//        }
+//
+//        @Override
+//        public Contributor[] getMaintainers() {
+//          return null;
+//        }
+//
+//        @Override
+//        public String getShortCode() {
+//          if (parts[1].length() == 2) {
+//            return parts[1];
+//          }
+//          return parts[1].split("_")[0]; //en as in en_US
+//        }
+//
+//        @Override
+//        public String[] getCountries() {
+//          if (parts[1].length() == 2) {
+//            return new String[]{""};
+//          }
+//          return new String[]{parts[1].split("_")[1]}; //US as in en_US
+//        }
+//
+//        @Override
+//        public String getName() {
+//          return parts[2].replace(".xml", "");
+//        }
+//
+//        @Override
+//        public List<Rule> getRelevantRules(ResourceBundle messages, UserConfig userConfig, Language motherTongue, List<Language> altLanguages) {
+//          return Collections.emptyList();
+//        }
+//
+//        @Override
+//        public List<String> getRuleFileNames() {
+//          List<String> ruleFiles = new ArrayList<>();
+//          ruleFiles.add(file.getAbsolutePath());
+//          return ruleFiles;
+//        }
+//
+//        @Override
+//        public boolean isExternal() {
+//          return isAdditional;
+//        }
+//      };
+//    }
+//    return newLanguage;
+//  }
+//------------------------------Revise version---------------------------------------------
+  public static Language makeLanguage(File file, boolean isAdditional) {
+    String[] parts = validateAndExtractFileParts(file);
+    return isSupportedLanguage(parts[1])
+      ? createSupportedLanguage(parts, file, isAdditional)
+      : createUnsupportedLanguage(parts, file, isAdditional);
+  }
+  public static String[] validateAndExtractFileParts(File file) {
+    Objects.requireNonNull(file, "The file cannot be null");
     if (!file.getName().endsWith(".xml")) {
       throw new RuleFilenameException(file);
     }
     String[] parts = file.getName().split("-");
-    boolean startsWithRules = parts[0].equals("rules");
-    boolean secondPartHasCorrectLength = parts.length == 3 &&
-            (parts[1].length() == "en".length() || parts[1].length() == "ast".length() || parts[1].length() == "en_US".length());
-    if (!startsWithRules || !secondPartHasCorrectLength) {
+    if (parts.length != 3 || !parts[0].equals("rules")) {
       throw new RuleFilenameException(file);
     }
-    //TODO: when the XML file is mergeable with
-    // other rules (check this in the XML Rule Loader by using rules[@integrate='add']?),
-    // subclass the existing language,
-    //and adjust the settings if any are set in the rule file default configuration set
-
-    Language newLanguage;
-    if (Languages.isLanguageSupported(parts[1])) {
-      Language baseLanguage = Languages.getLanguageForShortCode(parts[1]).getClass().newInstance();
-      newLanguage = new ExtendedLanguage(baseLanguage, parts[2].replace(".xml", ""), file);
-    } else {
-      newLanguage = new Language() {
-        @Override
-        public Locale getLocale() {
-          return new Locale(getShortCode());
-        }
-
-        @Override
-        public Contributor[] getMaintainers() {
-          return null;
-        }
-
-        @Override
-        public String getShortCode() {
-          if (parts[1].length() == 2) {
-            return parts[1];
-          }
-          return parts[1].split("_")[0]; //en as in en_US
-        }
-
-        @Override
-        public String[] getCountries() {
-          if (parts[1].length() == 2) {
-            return new String[]{""};
-          }
-          return new String[]{parts[1].split("_")[1]}; //US as in en_US
-        }
-
-        @Override
-        public String getName() {
-          return parts[2].replace(".xml", "");
-        }
-
-        @Override
-        public List<Rule> getRelevantRules(ResourceBundle messages, UserConfig userConfig, Language motherTongue, List<Language> altLanguages) {
-          return Collections.emptyList();
-        }
-
-        @Override
-        public List<String> getRuleFileNames() {
-          List<String> ruleFiles = new ArrayList<>();
-          ruleFiles.add(file.getAbsolutePath());
-          return ruleFiles;
-        }
-
-        @Override
-        public boolean isExternal() {
-          return isAdditional;
-        }
-      };
+    return parts;
+  }
+  public static boolean isSupportedLanguage(String languageCode) {
+    return Languages.isLanguageSupported(languageCode);
+  }
+  public static Language createSupportedLanguage(String[] parts, File file, boolean isAdditional) {
+    Language baseLanguage = Languages.getLanguageForShortCode(parts[1]);
+    if (baseLanguage == null) {
+      throw new IllegalArgumentException("Unsupported language code: " + parts[1]);
     }
-    return newLanguage;
+    return new ExtendedLanguage(baseLanguage, parts[2].replace(".xml", ""), file, isAdditional);
+  }
+  public static Language createUnsupportedLanguage(String[] parts, File file, boolean isAdditional) {
+
+    return new Language() {
+      @Override
+      public String getShortCode() {
+        return parts[1];
+      }
+      @Override
+      public String getName() {
+        return parts[2].replace(".xml", "");
+      }
+      @Override
+      public String[] getCountries() {
+        return new String[0];
+      }
+      @Override
+      public Contributor[] getMaintainers() {
+        return new Contributor[0];
+      }
+      @Override
+      public List<Rule> getRelevantRules(ResourceBundle messages, UserConfig userConfig, Language motherTongue, List<Language> altLanguages) {
+        return Collections.emptyList();
+      }
+      @Override
+      public boolean isExternal() {
+        return isAdditional;
+      }
+    };
   }
 
+  //--------------------------------------------------------------------------------------------------------------
   static class ExtendedLanguage extends Language {
 
     private final Language baseLanguage;
     private final String name;
     private final File ruleFile;
 
-    ExtendedLanguage(Language baseLanguage, String name, File ruleFile) {
+    ExtendedLanguage(Language baseLanguage, String name, File ruleFile, boolean isAdditional) {
       this.baseLanguage = baseLanguage;
       this.name = name;
       this.ruleFile = ruleFile;
@@ -258,4 +315,6 @@ public final class LanguageBuilder {
     }
 
   }
+
+
 }
